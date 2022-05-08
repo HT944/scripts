@@ -104,7 +104,6 @@ async function browse(cks) {
         }
    }
    catch(err){
-       console.log("代理无效，领取失败")
         console.log(err)
         await browser.close()
         return false
