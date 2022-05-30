@@ -5,7 +5,7 @@
 #京享红包浏览器模拟领取
 cron "0 0,10,20 * * *" jd_jingfen.js, tag:京享红包模拟领取
 JDPROXYURL为代理池网址，返回为单个代理，格式为ip:port，不设置也可以跑，但是可能有风险
-JXHBCODE为京享红包的code值，https://u.jd.com/PdqJXrk
+JXHBCODE为京享红包的code值，https://u.jd.com/JIHcJ3i
  */
 
 const $ = new Env('京享红包模拟领取');
@@ -17,7 +17,7 @@ const notify = $.isNode() ? require('./sendNotify') : '';
 const jdCookieNode = $.isNode() ? require('./jdCookie.js') : '';
 const proxyUrl = $.isNode() ? (process.env.JDPROXYURL ? process.env.JDPROXYURL : ''):'';
 let cookies = []
-const jxhb_code =  $.isNode() ? (process.env.JXHBCODE ? process.env.JXHBCODE : 'PdqJXrk'):'PdqJXrk';
+const jxhb_code =  $.isNode() ? (process.env.JXHBCODE ? process.env.JXHBCODE : 'JIHcJ3i'):'JIHcJ3i';
 let ck = ''
 
 if ($.isNode()) {
@@ -110,12 +110,12 @@ async function browse(cks, proxyIp) {
             '--disable-gpu',  // 关闭GPU硬件加速
             '--disable-dev-shm-usage',  // 创建临时文件共享内存
             '--disable-setuid-sandbox',  // uid沙盒
-            '--no-first-run', // 没有设置首页。在启动的时候，就会打开一个空白页面。
+            // '--no-first-run', // 没有设置首页。在启动的时候，就会打开一个空白页面。
             '--no-sandbox', // 沙盒模式
             `--window-size=${375},${800}`,  // 设置窗口大小
             '--no-zygote',
             '--single-process', // 单进程运行
-            '--blink-settings=imagesEnabled=false',
+            // '--blink-settings=imagesEnabled=false',
             '--disable-features=AudioServiceOutOfProcess',
          ],
          executablePath: '/usr/bin/chromium-browser'
@@ -130,32 +130,31 @@ async function browse(cks, proxyIp) {
    try{
        console.log("正在领取京享红包")
         await page.goto("https://u.jd.com/"+jxhb_code)
-        await page.waitForTimeout(5000)
+        await page.waitForTimeout(3000)
         await page.setCookie(...cks)
-        await page.goto("https://u.jd.com/"+jxhb_code)
-        await page.waitForTimeout(8000)
-        // content = await page.content()
-        // content = await page.plainText()
-        content = await page.$eval('*', el => el.innerText)
-        // console.log(content)
-        // await page.screenshot({ path: 'example2.png' });
-        if(!content.includes("今日机会已用完")){
-            try{
-                await page.click(".index-module__union-coupon-button___1grbK.index-module__animate-pulse___YnSfN")
-                await page.waitForTimeout(8000)
-                const prize = await page.$eval('.index-module__h1___1LsBb.index-module__wx___2_6Eh', el => el.textContent);
-                console.log("领取成功:\t" + prize) 
+        for (let i = 0; i < 10; i++) {
+            await page.goto("https://u.jd.com/"+jxhb_code)
+            await page.waitForTimeout(3000)
+            content = await page.$eval('*', el => el.innerText)
+            if(!content.includes("今日机会已用完")){
+                try{
+                    await page.click(".index-module__union-coupon-button___1grbK.index-module__animate-pulse___YnSfN")
+                    await page.waitForTimeout(5000)
+                    const aaa = await page.$eval('.index-module__h1___1vPTg.index-module__wx___36nAw', el => el.textContent);
+                    console.log("领取成功:\t" + aaa) 
+                }
+                catch(err){
+                    console.log(err)
+                    console.log("出现未知错误，领取失败")
+                    await page.screenshot({ path: 'error.png' });
+                    await browser.close()
+                    break;
+                }
             }
-            catch(err){
-                console.log(err)
-                console.log("出现未知错误，领取失败")
-                await page.screenshot({ path: 'error.png' });
-                await browser.close()
-                return false
+            else{
+                console.log("今日机会已用完")  
+                break;
             }
-        }
-        else{
-            console.log("今日机会已用完")  
         }
 
    }
